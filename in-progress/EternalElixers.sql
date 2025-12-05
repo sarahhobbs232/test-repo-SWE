@@ -1,197 +1,128 @@
---CREATE DATABASE
+-- EternalElixers.sql  (SQLite schema + seed data)
+PRAGMA foreign_keys = ON;
 
-CREATE DATABASE Eternal_Elixers
-USE Eternal_Elixers
+-------------------------------------------------
+-- USER TABLE
+-------------------------------------------------
+DROP TABLE IF EXISTS User_T;
+CREATE TABLE User_T (
+    UserID      INTEGER      PRIMARY KEY,
+    Username    TEXT         NOT NULL UNIQUE,
+    Password    TEXT         NOT NULL,
+    Name        TEXT,
+    UserType    TEXT         NOT NULL,
+    Email       TEXT
+);
 
+INSERT INTO User_T (UserID, Username, Password, Name, UserType, Email) VALUES
+(1, 'ejones', 'password1', 'Eric Jones',  'Admin', 'ejones@gmail.com'),
+(2, 'shobbs', 'password2', 'Sarah Hobbs', 'Admin', 'shobbs@gmail.com'),
+(3, 'kkolb',  'password3', 'Kyle Kolb',   'User',  'kkolb@gmail.com');
 
---USER TABLE
-CREATE TABLE User_T(
-    UserID NUMERIC(11,0) NOT NULL,
+-------------------------------------------------
+-- INVENTORY TABLE
+-------------------------------------------------
+DROP TABLE IF EXISTS Inventory_T;
+CREATE TABLE Inventory_T (
+    ItemID            INTEGER      PRIMARY KEY,
+    PotionName        TEXT,
+    PotionCategory    TEXT,
+    PotionDescription TEXT,
+    PotionCost        REAL,
+    PotionPhoto       TEXT
+);
 
-    Username VARCHAR(50) NOT NULL,
-    Password VARCHAR(50) NOT NULL,
-    Name VARCHAR(25),
-    Street VARCHAR(70),
-    City VARCHAR(50),
-    State VARCHAR(2),
-    Zip NUMERIC(5),
-    UserType VARCHAR(8),
-CONSTRAINT User_PK PRIMARY KEY (UserID));
+INSERT INTO Inventory_T (ItemID, PotionName, PotionCategory, PotionDescription, PotionCost, PotionPhoto) VALUES
+(3001, 'Love Potion',   'Emotion',   'Takes only 3 drops to make anyone yours.',          12.00, 'love potion image path'),
+(3002, 'Fire Potion',   'Elemental', 'Creates a large flame that is indistinguishable.',  12.00, 'fire potion image path'),
+(3003, 'Growth Potion', 'Mystic',    'Grants user a 3x - 10x body size increase.',       14.00, 'growth potion image path');
 
-ALTER TABLE User_T
-DROP COLUMN Street;
+-------------------------------------------------
+-- SHIPPING TABLE
+-------------------------------------------------
+DROP TABLE IF EXISTS Shipping_T;
+CREATE TABLE Shipping_T (
+    ShippingID   INTEGER   PRIMARY KEY,
+    ShippingType TEXT      NOT NULL,
+    ShippingCost REAL      NOT NULL
+);
 
-ALTER TABLE User_T
-DROP COLUMN City;
+INSERT INTO Shipping_T (ShippingID, ShippingType, ShippingCost) VALUES
+(4001, 'Overnight', 29.00),
+(4002, '3-Day',     19.00),
+(4003, 'Ground',     0.00);
 
-ALTER TABLE User_T
-DROP COLUMN State;
+-------------------------------------------------
+-- SHOPPING CART TABLE
+-------------------------------------------------
+DROP TABLE IF EXISTS ShoppingCart_T;
+CREATE TABLE ShoppingCart_T (
+    ShoppingCartID INTEGER PRIMARY KEY,
+    UserID         INTEGER,
+    ItemID         INTEGER,
+    FOREIGN KEY (UserID) REFERENCES User_T(UserID),
+    FOREIGN KEY (ItemID) REFERENCES Inventory_T(ItemID)
+);
 
-ALTER TABLE User_T
-DROP COLUMN Zip;
+INSERT INTO ShoppingCart_T (ShoppingCartID, UserID, ItemID) VALUES
+(5001, 1, 3001),
+(5002, 2, 3002),
+(5003, 3, 3003);
 
-ALTER TABLE User_T
-ADD Email VARCHAR(100);
+-------------------------------------------------
+-- BILL TABLE
+-------------------------------------------------
+DROP TABLE IF EXISTS Bill_T;
+CREATE TABLE Bill_T (
+    BillID         INTEGER    PRIMARY KEY,
+    UserID         INTEGER,
+    ShoppingCartID INTEGER,
+    ItemID         INTEGER,
+    SalesDate      TEXT,
+    SaleTime       TEXT,
+    SalesTax       REAL,
+    SubTotal       REAL,
+    ShippingCost   REAL,
+    Total          REAL,
+    Street         TEXT,
+    City           TEXT,
+    State          TEXT,
+    Zip            TEXT,
+    ShippingID     INTEGER,
+    FOREIGN KEY (UserID)         REFERENCES User_T(UserID),
+    FOREIGN KEY (ShoppingCartID) REFERENCES ShoppingCart_T(ShoppingCartID),
+    FOREIGN KEY (ItemID)         REFERENCES Inventory_T(ItemID),
+    FOREIGN KEY (ShippingID)     REFERENCES Shipping_T(ShippingID)
+);
 
+INSERT INTO Bill_T (BillID, UserID, ShoppingCartID, ItemID, SalesDate, SaleTime, SalesTax, SubTotal,
+                    ShippingCost, Total, Street, City, State, Zip, ShippingID)
+VALUES
+(1001, 1, 5001, 3001, '2025-12-17', '12:35:56', 0.06, 12.00, 29.00, 0.00,
+ '1234 Main Street', 'Los Angeles', 'CA', '90210', 4001),
+(1002, 2, 5002, 3002, '2025-12-18', '14:23:28', 0.06, 12.00, 29.00, 0.00,
+ '5678 Hidden Valley Dr', 'Woodland Hills', 'CA', '91304', 4001),
+(1003, 3, 5003, 3003, '2025-12-23', '09:18:54', 0.06, 14.00, 19.00, 0.00,
+ '8732 Morrish Grove Ct', 'Encino', 'CA', '91300', 4002);
 
-INSERT INTO User_T VALUES (0001, 'ejones', 'password1', 'Eric Jones',  'Admin', 'ejones@gmail.com');
-INSERT INTO User_T VALUES (0002, 'shobbs', 'password2', 'Sarah Hobbs',  'Admin', 'shobbs@gmail.com');
-INSERT INTO User_T VALUES (0003, 'kkolb', 'password3', 'Kyle Kolb',  'User', 'kkolb@gmail.com');
-
-SELECT *
-FROM User_T;
-
-SELECT *
-FROM User_T
-WHERE Usertype = 'Admin';
-
-
---BILL TABLE
-CREATE TABLE Bill_T(
-    BillID NUMERIC(11,0) NOT NULL,
-    UserID NUMERIC(11,0),
-    ShoppingCartID NUMERIC(11,0),
-    ItemID NUMERIC(11,0),
-
-    SalesDate DATE,
-    SaleTime TIME,
-    SalesTax DECIMAL(5,2),
-    SubTotal MONEY,
-    ShippingCost MONEY,
-    Total MONEY,
-
-
-CONSTRAINT Bill_PK PRIMARY KEY (BillID),
-CONSTRAINT Bill_FK1 FOREIGN KEY (UserID) REFERENCES User_T(UserID),
-CONSTRAINT Bill_FK2 FOREIGN KEY (ShoppingCartID) REFERENCES ShoppingCart_T(ShoppingCartID),
-CONSTRAINT Bill_FK3 FOREIGN KEY (ItemID) REFERENCES Inventory_T(ItemID));
-
-
---Moved address info into Bill table since bill is being shipped to that specific address
-ALTER TABLE Bill_T
-ADD Street VARCHAR(250);
-
-ALTER TABLE Bill_T
-ADD City VARCHAR(250);
-
-ALTER TABLE Bill_T
-ADD State VARCHAR(2);
-
-ALTER TABLE Bill_T
-ADD Zip NUMERIC(5);
-
-
---adding ShippingID to Bill table check line 166
-ALTER TABLE Bill_T
-ADD ShippingID NUMERIC(11,0);
-
-ALTER TABLE Bill_T
-ADD CONSTRAINT Bill_FK4
-FOREIGN KEY (ShippingID)
-REFERENCES Shipping_T(ShippingID);
-
-
-
-INSERT INTO Bill_T VALUES (1001, 0001, 5001, 3001, '12/17/2025', '12:35:56', .06, 12.00 , 29.00, 0.00, '1234 Main Street', 'Los Angeles', 'CA', '90210', 4001);
+-- compute Totals
 UPDATE Bill_T
-SET Bill_T.Total = SubTotal + (SubTotal * .06) + ShippingCost
-WHERE Bill_T.BillID = 1001;
+SET Total = SubTotal + (SubTotal * SalesTax) + ShippingCost;
 
-INSERT INTO Bill_T VALUES (1002, 0002, 5002, 3002, '12/18/2025', '14:23:28', .06, 12.00, 29.00, 0.00, '5678 Hidden Valley Dr', 'Woodland Hills', 'CA', '91304', 4001);
-UPDATE Bill_T
-SET Total = SubTotal + (SubTotal * .06) + ShippingCost
-WHERE Bill_T.BillID = 1002;
+-------------------------------------------------
+-- BILL INVENTORY ITEM TABLE
+-------------------------------------------------
+DROP TABLE IF EXISTS BillInventoryItem_T;
+CREATE TABLE BillInventoryItem_T (
+    BillInventoryItemID INTEGER PRIMARY KEY,
+    BillID              INTEGER,
+    ItemID              INTEGER,
+    FOREIGN KEY (BillID) REFERENCES Bill_T(BillID),
+    FOREIGN KEY (ItemID) REFERENCES Inventory_T(ItemID)
+);
 
-INSERT INTO Bill_T VALUES (1003, 0003, 5003, 3003,'12/23/2025', '09:18:54', .06, 14.00, 19.00, 0.00, '8732 Morrish Grove Ct', 'Encino', 'CA', '91300', 4002);
-UPDATE Bill_T
-SET Total = SubTotal + (SubTotal * .06) + ShippingCost
-WHERE Bill_T.BillID = 1003;
-
-SELECT *
-FROM Bill_T;
-
-
-
---BILL INVENTORY ITEM TABLE
-CREATE TABLE BillInventoryItem_T(
-    BillInventoryItemID NUMERIC(11,0) NOT NULL,
-    BillID NUMERIC(11,0),
-    ItemID NUMERIC (11,0),
-
-
-CONSTRAINT BillInventoryItem_PK PRIMARY KEY (BillInventoryItemID),
-CONSTRAINT BillInventoryItem_FK1 FOREIGN KEY (BillID) REFERENCES Bill_T(BillID),
-CONSTRAINT BillInventoryItem_FK2 FOREIGN KEY (ItemID) REFERENCES Inventory_T(ItemID));
-
-INSERT INTO BillInventoryItem_T VALUES (6001, 1001, 3001);
-INSERT INTO BillInventoryItem_T VALUES (6002, 1002, 3002);
-INSERT INTO BillInventoryItem_T VALUES (6003, 1003, 3003);
-
-SELECT *
-FROM BillInventoryItem_T;
-
---INVENTORY TABLE
-CREATE TABLE Inventory_T(
-    ItemID NUMERIC(11,0) NOT NULL,
-
-    PotionName VARCHAR(50),
-    PotionCategory VARCHAR(25),
-    PotionDescription VARCHAR(100),
-    PotionCost MONEY,
-CONSTRAINT Inventory_PK PRIMARY KEY (ItemID));
-
-ALTER TABLE Inventory_T
-ADD PotionPhoto VARCHAR(250);
-
-
-INSERT INTO Inventory_T VALUES (3001, 'Love Potion', 'Emotion', 'Takes only 3 drops to make anyone yours. ', 12.00, 'love potion image path ');
-INSERT INTO Inventory_T VALUES (3002, 'Fire Potion', 'Elemental', 'Creates a large flame that is indistinguishable.', 12.00, 'fire portion image path');
-INSERT INTO Inventory_T VALUES (3003, 'Growth Potion', 'Mystic', 'Grants user a 3x - 10x body size increase depending on dosage.', 14.00, ' growth potion image path');
-
-
-
-SELECT *
-FROM Inventory_T;
-
---SHOPPING CART TABLE
-CREATE TABLE ShoppingCart_T(
-    ShoppingCartID NUMERIC(11,0) NOT NULL,
-    UserID NUMERIC(11,0),
-    ItemID NUMERIC(11,0),
-    ShippingID NUMERIC(11,0),
-
-
-CONSTRAINT ShoppingCart_PK PRIMARY KEY (ShoppingCartID),
-CONSTRAINT ShoppingCart_FK1 FOREIGN KEY (UserID) REFERENCES User_T(UserID),
-CONSTRAINT ShoppingCart_FK2 FOREIGN KEY (ItemID) REFERENCES Inventory_T(ItemID),
-CONSTRAINT ShoppingCart_FK3 FOREIGN KEY (ShippingID) REFERENCES Shipping_T(ShippingID));
-
---shipping is not chosen in shopping cart
-ALTER TABLE ShoppingCart_T
-DROP COLUMN ShippingID;
-
-INSERT INTO ShoppingCart_T VALUES (5001, 0001, 3001);
-INSERT INTO ShoppingCart_T VALUES (5002, 0002, 3002);
-INSERT INTO ShoppingCart_T VALUES (5003,0003, 3003);
-
-SELECT *
-FROM ShoppingCart_T;
-
-
-
-
---SHIPPING TABLE
-CREATE TABLE Shipping_T(
-    ShippingID NUMERIC(11,0) NOT NULL ,
-    ShippingType VARCHAR(25) NOT NULL,
-    ShippingCost MONEY NOT NULL,
-
-CONSTRAINT Shipping_PK PRIMARY KEY (ShippingID));
-
-INSERT INTO Shipping_T VALUES (4001, 'Overnight', 29.00);
-INSERT INTO Shipping_T VALUES (4002, '3-Day', 19.00);
-INSERT INTO Shipping_T VALUES (4003, 'Ground', 0.00);
-
-SELECT *
-FROM Shipping_T;
+INSERT INTO BillInventoryItem_T (BillInventoryItemID, BillID, ItemID) VALUES
+(6001, 1001, 3001),
+(6002, 1002, 3002),
+(6003, 1003, 3003);
 
