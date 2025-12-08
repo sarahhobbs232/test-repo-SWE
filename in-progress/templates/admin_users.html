@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Eternal Elixirs – User Management</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+          crossorigin="anonymous">
+
+    <link rel="icon" type="image/x-icon"
+          href="{{ url_for('static', filename='images/favicon.png') }}">
+</head>
+<body style="background-color: rgb(145,165,152);">
+
+<nav class="navbar navbar-expand-md navbar-dark" style="background-color: #315657">
+    <div class="container">
+        <img src="{{ url_for('static', filename='images/favicon.png') }}"
+             alt="logo" class="me-3" style="width:50px;height:50px;">
+
+        <a href="{{ url_for('shop.shop_home') }}" class="navbar-brand" style="font-family: cursive">
+            Eternal Elixirs
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navmenu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{{ url_for('shop.shop_home') }}" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('admin.sales_report') }}" class="nav-link">Sales Report</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('cart.view_cart') }}" class="nav-link">Shopping Cart</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <h1 class="mb-4">User Management</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info">
+            {% for msg in messages %}
+              <div>{{ msg }}</div>
+            {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <p class="mb-3">
+        Below is a list of all users. You can see who is a regular <strong>User</strong>
+        vs an <strong>Admin</strong>, and promote regular users to Admin.
+    </p>
+
+    <table class="table table-striped table-bordered bg-white">
+        <thead class="table-dark">
+        <tr>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th style="width: 180px;">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user["UserID"] }}</td>
+                <td>{{ user["Username"] }}</td>
+                <td>{{ user["Name"] or "" }}</td>
+                <td>{{ user["Email"] or "" }}</td>
+                <td>{{ user["UserType"] }}</td>
+                <td>
+                    {% if user["UserType"] != "Admin" %}
+                        <form method="post"
+                              action="{{ url_for('admin.promote_user', user_id=user['UserID']) }}"
+                              style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                Promote to Admin
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="text-muted">Already Admin</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not users %}
+        <p>No users found.</p>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>
