@@ -1,10 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILfVY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.png">
+    <title>Eternal Elixirs | Sales Report</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root{
+            --green-dark: #315657;
+            --green-soft: #8daf9b;
+            --lavender:  #d4b1d3;
+        }
+
+        body{
+            background-color: var(--green-soft);
+            font-family: cursive;
+        }
+
+        /* SAME TOP STYLING AS YOUR CART PAGE */
+        .ee-navbar{
+            background-color: var(--green-dark);
+            border-bottom: 3px solid var(--lavender);
+        }
+
+        .title-band{
+            background-color: var(--green-dark);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .title-text{
+            color: white;
+            margin: 0;
+            font-size: clamp(26px, 3vw, 38px);
+            letter-spacing: 0.5px;
+        }
+
+        /* REPORT AREA */
+        .report-surface{
+            background-color: var(--green-soft);
+            border: 2px solid rgba(0,0,0,0.08);
+            border-radius: 6px;
+        }
+
+        .summary-card{
+            background-color: rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 4px;
+            padding: 14px;
+            height: 100%;
+        }
+
+        .summary-label{
+            font-size: 18px;
+            color: #0f1c1b;
+        }
+
+        .summary-value{
+            font-size: 26px;
+            color: white;
+        }
+
+        .chart-card{
+            background-color: rgba(0,0,0,0.06);
+            border-radius: 4px;
+            padding: 18px;
+        }
+
+        .table-card{
+            background-color: rgba(0,0,0,0.06);
+            border-radius: 4px;
+            padding: 18px;
+        }
+
+        .ee-table thead{
+            background-color: var(--green-dark);
+            color: white;
+        }
+    </style>
 </head>
+
+
 <body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+<nav class="navbar navbar-expand-md navbar-dark ee-navbar">
+    <div class="container">
+        <img src="/static/images/favicon.png" alt="logo" class="me-3" style="width:50px;height:50px;">
+
+        <a href="{{ url_for('main.home') }}" class="navbar-brand" style="font-family: cursive;">
+            Eternal Elixirs
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navmenu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a href="{{ url_for('main.home') }}" class="nav-link">Home</a></li>
+                <li class="nav-item"><a href="{{ url_for('auth.login') }}" class="nav-link">Login</a></li>
+                <li class="nav-item"><a href="{{ url_for('reports.sales') }}" class="nav-link">Sales Report</a></li>
+                <li class="nav-item"><a href="{{ url_for('cart.view_cart') }}" class="nav-link">Shopping Cart</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="title-band">
+    <div class="container py-3 text-center">
+        <h2 class="title-text">Eternal Elixirs</h2>
+    </div>
+</section>
+
+<div class="search-row">
+    <div class="container py-3 d-flex flex-wrap gap-2 align-items-center">
+        <form class="d-inline-flex" role="search" method="GET" action="{{ url_for('shop.search') }}">
+            <input class="form-control me-2" type="search" name="q"
+                   placeholder="Search for potions..." aria-label="Search"
+                   value="{{ request.args.get('q','') }}">
+            <button class="btn btn-outline-success search-btn" type="submit">Search</button>
+        </form>
+
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle filter-btn" type="button"
+                    id="filterMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                Filter
+            </button>
+            <ul class="dropdown-menu filter-menu" aria-labelledby="filterMenuBtn">
+                <li><a class="dropdown-item" href="{{ url_for('shop.search', q=request.args.get('q',''), sort='desc') }}">Highest to Lowest</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('shop.search', q=request.args.get('q',''), sort='asc') }}">Lowest to Highest</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- SALES REPORT CONTENT (DATABASE-DRIVEN) -->
+<main class="container my-4">
+
+    <!-- SUMMARY ROW -->
+    <div class="report-surface p-3 mb-4">
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="summary-card">
+                    <div class="summary-label">Orders</div>
+                    <div class="summary-value">{{ report.order_count }}</div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="summary-card">
+                    <div class="summary-label">Subtotal</div>
+                    <div class="summary-value">${{ "%.2f"|format(report.sum_subtotal) }}</div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="summary-card">
+                    <div class="summary-label">Tax Collected</div>
+                    <div class="summary-value">${{ "%.2f"|format(report.sum_tax) }}</div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="summary-card">
+                    <div class="summary-label">Shipping Collected</div>
+                    <div class="summary-value">${{ "%.2f"|format(report.sum_shipping) }}</div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="summary-card">
+                    <div class="summary-label">Total Revenue</div>
+                    <div class="summary-value">${{ "%.2f"|format(report.sum_total) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="report-surface p-3 mb-4">
+        <div class="chart-card">
+            {% if report.revenue_by_date and report.revenue_by_date|length > 0 %}
+                <canvas id="revenueChart" height="120"></canvas>
+            {% else %}
+                <div style="font-size:20px; color:#1f2b2a;">
+                    No sales data available yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DETAILED SALES TABLE -->
+    <div class="report-surface p-3">
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="table ee-table table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Potion</th>
+                            <th>Category</th>
+                            <th>Shipping Type</th>
+                            <th>Subtotal</th>
+                            <th>Tax Rate</th>
+                            <th>Shipping Cost</th>
+                            <th>Total</th>
+                            <th>City</th>
+                            <th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in report.bills %}
+                        <tr>
+                            <td>{{ b.BillID }}</td>
+                            <td>{{ b.SalesDate }}</td>
+                            <td>{{ b.SaleTime }}</td>
+                            <td>{{ b.PotionName or "N/A" }}</td>
+                            <td>{{ b.PotionCategory or "N/A" }}</td>
+                            <td>{{ b.ShippingType or "N/A" }}</td>
+                            <td>${{ "%.2f"|format(b.SubTotal) }}</td>
+                            <td>{{ "%.2f"|format(b.SalesTax) }}</td>
+                            <td>${{ "%.2f"|format(b.ShippingCost) }}</td>
+                            <td>${{ "%.2f"|format(b.Total) }}</td>
+                            <td>{{ b.City }}</td>
+                            <td>{{ b.State }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+{% if report.revenue_by_date and report.revenue_by_date|length > 0 %}
+<script>
+    const dataPoints = {{ report.revenue_by_date | tojson }};
+    const labels = dataPoints.map(x => x.date);
+    const revenue = dataPoints.map(x => x.revenue);
+
+    const ctx = document.getElementById("revenueChart");
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Revenue",
+                data: revenue,
+                backgroundColor: "#d4b1d3",
+                borderColor: "#d4b1d3",
+                borderWidth: 1,
+                borderRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: "rgba(0,0,0,0.08)" }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
 
 </body>
 </html>
