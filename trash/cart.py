@@ -103,3 +103,4 @@ def remove_from_cart():
 
     flash("Item removed from your cart.")
     return redirect(url_for("cart.view_cart"))
+
