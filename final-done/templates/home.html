@@ -21,9 +21,8 @@
     <div class="container">
 
         <img src="{{ url_for('static', filename='images/logo.png') }}"
-         alt="logo"
-         class="me-3 brand-logo">
-
+             alt="logo"
+             class="me-3 brand-logo">
 
         <a href="{{ url_for('shop.shop_home') }}" class="navbar-brand" style="font-family: cursive;">
             Eternal Elixirs
@@ -93,7 +92,9 @@
 </div>
 
 <!-- Search + Filter -->
-<div class="container mt-2">
+<div class="container mt-2 d-flex flex-wrap align-items-start gap-2">
+
+    <!-- Search -->
     <form class="d-inline-flex" role="search" method="get" action="{{ url_for('shop.shop_home') }}">
         <input class="form-control me-2"
                type="search"
@@ -105,16 +106,47 @@
     </form>
 
     <!-- Filter by category -->
-    <div class="dropdown mt-2">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="myInput"
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="categoryDropdown"
                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Filter by Category
         </button>
-        <div class="dropdown-menu" aria-labelledby="myInput">
+        <div class="dropdown-menu" aria-labelledby="categoryDropdown">
             <a class="dropdown-item" href="{{ url_for('shop.shop_home') }}">All</a>
             <a class="dropdown-item" href="{{ url_for('shop.shop_home', category='Emotion') }}">Emotion</a>
             <a class="dropdown-item" href="{{ url_for('shop.shop_home', category='Elemental') }}">Elemental</a>
             <a class="dropdown-item" href="{{ url_for('shop.shop_home', category='Mystic') }}">Mystic</a>
+        </div>
+    </div>
+
+    <!-- Sort by price -->
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="sortDropdown"
+                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Sort by Price
+        </button>
+        <div class="dropdown-menu" aria-labelledby="sortDropdown">
+            <!-- default (name A–Z) -->
+            <a class="dropdown-item"
+               href="{{ url_for('shop.shop_home',
+                                q=current_search,
+                                category=current_category) }}">
+                Default (Name A–Z)
+            </a>
+            <a class="dropdown-item"
+               href="{{ url_for('shop.shop_home',
+                                q=current_search,
+                                category=current_category,
+                                sort='price_desc') }}">
+                Price: High → Low
+            </a>
+            <a class="dropdown-item"
+               href="{{ url_for('shop.shop_home',
+                                q=current_search,
+                                category=current_category,
+                                sort='price_asc') }}">
+                Price: Low → High
+            </a>
         </div>
     </div>
 </div>
