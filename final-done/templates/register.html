@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Create Account | Eternal Elixirs</title>
+
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+</head>
+
+<body style="background-color: rgb(145,165,152)">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-md navbar-dark navbar-ee">
+    <div class="container">
+
+        <img src="{{ url_for('static', filename='images/logo.png') }}"
+         alt="logo"
+         class="me-3 brand-logo">
+
+
+        <a href="{{ url_for('shop.shop_home') }}" class="navbar-brand" style="font-family: cursive;">
+            Eternal Elixirs
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navmenu">
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    <a href="{{ url_for('shop.shop_home') }}" class="nav-link">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ url_for('cart.view_cart') }}" class="nav-link">Shopping Cart</a>
+                </li>
+
+                {% if session.get("user_id") %}
+                    <!-- Show Account instead of Login/Register when logged in -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.account') }}" class="nav-link">Account</a>
+                    </li>
+
+                    {% if session.get("user_type") == "Admin" %}
+                        <!-- NEW: direct link to admin dashboard -->
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.sales_report') }}" class="nav-link">Sales Report</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a>
+                    </li>
+                {% else %}
+                    <!-- Not logged in: show Login + Register -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.register') }}" class="nav-link">Register</a>
+                    </li>
+                {% endif %}
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Flash messages -->
+<div class="container mt-3">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info" role="alert">
+          {% for msg in messages %}
+            <div>{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Register screen -->
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+
+    <div class="p-5 rounded mt-3"
+         style="background-color: #d4b1d3; font-family: cursive; width: 100%; max-width: 500px;">
+
+        <h1 class="text-center mb-1"><strong>Sign Up</strong></h1>
+        <h4 class="text-center mb-3">Create your Eternal Elixirs account</h4>
+
+        <form method="POST" action="{{ url_for('auth.register') }}">
+            <div class="form-group mb-3">
+                <label for="name" class="fs-5">Full Name:</label>
+                <input type="text" class="form-control" placeholder="Enter your name"
+                       id="name" name="name">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="email" class="fs-5">Email:</label>
+                <input type="email" class="form-control" placeholder="Enter your email"
+                       id="email" name="email">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="username" class="fs-5">Username:</label>
+                <input type="text" class="form-control" placeholder="Choose a username"
+                       id="username" name="username">
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="password" class="fs-5">Password:</label>
+                <input type="password" class="form-control" placeholder="Create a password"
+                       id="password" name="password">
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-success mt-2">Create Account</button>
+            </div>
+        </form>
+
+        <p class="text-center mt-3 mb-0">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">Log in</a>
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>
