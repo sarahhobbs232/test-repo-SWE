@@ -1,0 +1,58 @@
+/* ---------- General ---------- */
+
+body {
+    background-color: #91a598; /* same as your inline style */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ---------- Navbar ---------- */
+
+.navbar-ee {
+    background-color: #315657;
+    border-bottom: 3px solid #d4b1d3; /* lavender accent */
+}
+
+.brand-logo {
+    height: 45px;
+    width: auto;           /* keep aspect ratio */
+}
+
+/* ---------- Search + Filter row ---------- */
+
+.search-row {
+    margin-top: 0.75rem;
+}
+
+/* ---------- Cards / Potions ---------- */
+
+.potion-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    border: none;
+}
+
+.potion-card img {
+    height: 180px;
+    object-fit: contain;
+    padding-top: 12px;
+}
+
+.potion-card .card-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.potion-card .card-text {
+    min-height: 60px; /* keeps text blocks similar height */
+}
+
+.potion-card .btn {
+    margin-top: auto;
+}
+
+/* ---------- Utility ---------- */
+
+main {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+}
