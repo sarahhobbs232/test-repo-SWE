@@ -21,9 +21,11 @@ def shop_home():
     Supports:
     - ?q=keyword to search by name/description
     - ?category=Elemental to filter by category
+    - ?sort=price_asc or price_desc to sort by price
     """
     search_term = request.args.get("q", "").strip()
     category = request.args.get("category", "").strip()
+    sort = request.args.get("sort", "").strip()  # NEW
 
     conn = get_connection()
     cur = conn.cursor()
@@ -52,8 +54,14 @@ def shop_home():
         sql += " AND PotionCategory = ?"
         params.append(category)
 
-    # Show in a stable order
-    sql += " ORDER BY PotionName ASC"
+    # Sorting logic
+    if sort == "price_desc":
+        sql += " ORDER BY PotionCost DESC"
+    elif sort == "price_asc":
+        sql += " ORDER BY PotionCost ASC"
+    else:
+        # Default: sort by name
+        sql += " ORDER BY PotionName ASC"
 
     cur.execute(sql, params)
     items = cur.fetchall()
@@ -65,7 +73,9 @@ def shop_home():
         items=items,
         current_search=search_term,
         current_category=category,
+        current_sort=sort,  # NEW (in case you want to use it in the template)
     )
+
 
 # ADD ITEM TO CART <<<<<<<<<<
 @shop_bp.route("/cart/add", methods=["POST"])
@@ -142,4 +152,3 @@ def add_to_cart():
 
     flash(f"Added {potion_name} to your cart.")
     return redirect(url_for("shop.shop_home"))
-
